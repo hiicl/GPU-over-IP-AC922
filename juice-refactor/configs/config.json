@@ -1,0 +1,5 @@
+{
+  "enable_memext": true,
+  "memext_size_mb": 4096,
+  "log_level": "info"
+}
