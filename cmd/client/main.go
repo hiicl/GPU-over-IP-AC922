@@ -8,9 +8,9 @@ import (
     "time"
 
     "google.golang.org/grpc"
-    pb "juice-refactor/proto"
+    pb "github.com/hiicl/GPU-over-IP-AC922/proto"
 
-    "juice-refactor/modules/netbalance"
+    "github.com/hiicl/GPU-over-IP-AC922/modules/netbalance"
 )
 
 // cmd/client/main.go 是gRPC服务的客户端入口文件

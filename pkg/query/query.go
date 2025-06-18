@@ -8,7 +8,7 @@ import (
     "strconv"
     "strings"
 
-    pb "juice-refactor/proto"
+    pb "github.com/hiicl/GPU-over-IP-AC922/proto"
 )
 
 // query 包提供GPU查询功能，使用nvidia-smi命令行工具获取GPU信息

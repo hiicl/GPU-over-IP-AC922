@@ -1,7 +1,7 @@
 package query
 
 import (
-    "juice-refactor/pkg/gpu"
+    "github.com/hiicl/GPU-over-IP-AC922/pkg/gpu"
 )
 
 // GPUUUIDsByIDs 根据 GPU 的 deviceID 列表返回其 UUID 列表

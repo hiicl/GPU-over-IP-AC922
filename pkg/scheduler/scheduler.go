@@ -5,7 +5,7 @@ import (
     "sync"
     "time"
 
-    "juice-refactor/pkg/util"
+    "github.com/hiicl/GPU-over-IP-AC922/pkg/util"
 )
 
 // scheduler 包提供GPU资源调度功能，管理GPU资源的占用和释放

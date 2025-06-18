@@ -10,13 +10,13 @@ import (
     "strconv"
 
     "google.golang.org/grpc"
-    pb "juice-refactor/proto"
+    pb "github.com/hiicl/GPU-over-IP-AC922/proto"
 
-    "juice-refactor/pkg/query"
-    "juice-refactor/pkg/scheduler"
-    "juice-refactor/pkg/gpu"
-    "juice-refactor/modules/memext"
-    "juice-refactor/modules/netbalance"
+    "github.com/hiicl/GPU-over-IP-AC922/pkg/query"
+    "github.com/hiicl/GPU-over-IP-AC922/pkg/scheduler"
+    "github.com/hiicl/GPU-over-IP-AC922/pkg/gpu"
+    "github.com/hiicl/GPU-over-IP-AC922/modules/memext"
+    "github.com/hiicl/GPU-over-IP-AC922/modules/netbalance"
 )
 
 // 单个服务结构（绑定一组GPU）

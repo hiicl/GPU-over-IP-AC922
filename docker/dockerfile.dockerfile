@@ -18,18 +18,18 @@ COPY . .
 # CGO_ENABLED=0: 禁用CGO，构建静态链接的可执行文件
 # GOOS=linux: 目标操作系统为Linux
 # GOARCH=ppc64le: 目标架构为ppc64le（适用于Power系统）
-# -o juice-server: 输出文件名为juice-server
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -o juice-server ./cmd/grpcserver
+# -o aitherion-server: 输出文件名为aitherion-server
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -o aitherion-server ./cmd/grpcserver
 
 # Stage 2: 创建最小化运行时环境
 # 使用Debian精简版作为基础镜像
 FROM debian:bullseye-slim
 
 # 设置工作目录
-WORKDIR /juice
+WORKDIR /aitherion
 
 # 从构建阶段复制构建好的Go服务二进制文件
-COPY --from=builder /app/juice-server .
+COPY --from=builder /app/aitherion-server .
 
 # 安装必要的运行时依赖
 # --no-install-recommends: 不安装推荐包，减小镜像体积
@@ -46,4 +46,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 注意：NVIDIA驱动和CUDA库由宿主机提供，不在容器内安装
 
 # 设置容器启动时执行的命令
-ENTRYPOINT ["./juice-server"]
+ENTRYPOINT ["./aitherion-server"]
