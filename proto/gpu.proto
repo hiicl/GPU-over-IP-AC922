@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package gpu;
 
-option go_package = "GPU-over-IP-AC922/proto;proto";
+option go_package = "github.com/hiicl/GPU-over-IP-AC922/proto;proto";
 
 // Void 表示空请求或空响应
 message Void {}
