@@ -1,89 +1,67 @@
-# GPU-over-IP-AC922 项目
+```mermaid
+flowchart TB
+  %% ========= UI 层 =========
+  subgraph UI_API [Web UI / API]
+    direction TB
+    WebUI[/"🌐 Web UI/REST API"/]
+  end
 
-## 服务端部署指南 (ppc64le 环境)
+  %% ========= 控制层 =========
+  subgraph Controller[Helios Controller (x86)]
+    direction TB
 
-### 环境要求
-- 使用 IBM 认证的 CUDA 驱动 (≥418 版本)
-- 推荐版本：440.x 到 470.x 系列（适配 POWER9 + NVLink）
-- 配套使用 nvidia-peermem 模块（特定场景需要）
+    Scheduler[🧠 调度器 / 策略引擎<br/>(Scheduler / Policy Engine)]
+    MetadataDB[📦 模型/数据元数据中心<br/>(Metadata Database)]
+    SharedL3[📶 L3 共享缓存 (Shared Cache)]
 
-### 编译注意事项
-```bash
-# 必须启用的编译标志：
--DCMAKE_CUDA_ARCHITECTURES="70"  # V100 架构支持
--mcpu=power9 -mtune=power9       # CPU 优化
--DUSE_CUDA=ON                    # 启用 CUDA 和 Unified Memory
+    Scheduler --> MetadataDB
+    MetadataDB --> SharedL3
+  end
+
+  %% ========= RPC 链接 =========
+  WebUI -->|HTTP / REST| Controller
+  Controller -->|Cap'n Proto RPC<br/>over 1000Gb/s RoCE| Agents
+
+  %% ========= 多节点 Agent 层 =========
+  subgraph Agents [AC922 GPU Nodes]
+    direction LR
+
+    %% --- Server 1 ---
+    subgraph S1[AC922 Server 1]
+      Agent1[🛰️ Helios Agent<br/>+ CLI]
+      subgraph NUMA0_S1[NUMA 0 Container]
+        LM0[🤖 Megatron-LM #0]
+        LM0_Mem[L2: Host Memory<br/>L1: GPU VRAM]
+      end
+      subgraph NUMA1_S1[NUMA 1 Container]
+        LM1[🤖 Megatron-LM #1]
+        LM1_Mem[L2: Host Memory<br/>L1: GPU VRAM]
+      end
+      Agent1 --> NUMA0_S1
+      Agent1 --> NUMA1_S1
+      LM0 --> LM0_Mem
+      LM1 --> LM1_Mem
+    end
+
+    %% --- Server 2 ---
+    subgraph S2[AC922 Server 2]
+      Agent2[🛰️ Helios Agent<br/>+ CLI]
+      subgraph NUMA0_S2[NUMA 0 Container]
+        LM2[🤖 Megatron-LM #2]
+        LM2_Mem[L2: Host Memory<br/>L1: GPU VRAM]
+      end
+      subgraph NUMA1_S2[NUMA 1 Container]
+        LM3[🤖 Megatron-LM #3]
+        LM3_Mem[L2: Host Memory<br/>L1: GPU VRAM]
+      end
+      Agent2 --> NUMA0_S2
+      Agent2 --> NUMA1_S2
+      LM2 --> LM2_Mem
+      LM3 --> LM3_Mem
+    end
+
+    %% 可扩展节点
+    Dots[⋯更多 Server]
+
+  end
 ```
-> **重要**：未启用上述标志可能导致 openCAPI 功能异常
-
-### 部署步骤
-1. **安装依赖**：
-   ```bash
-   sudo apt install -y git golang-go docker.io
-   ```
-
-2. **获取代码**：
-   ```bash
-   git clone https://github.com/hiicl/GPU-over-IP-AC922.git
-   cd GPU-over-IP-AC922
-   ```
-
-3. **构建 Docker 镜像**：
-   ```bash
-   cd docker
-   chmod +x build.sh
-   ./build.sh ppc64le
-   ```
-
-4. **生成拓扑文件**（宿主机执行）：
-   ```bash
-   ./cmd/aitherion init
-   ```
-
-5. **运行服务容器**：
-   ```bash
-   docker run -d --name aitherion-server \
-       --net host \
-       --cpuset-cpus="0-1,4-5" \
-       --env ENABLE_MEMEXT=true \
-       --env ENABLE_NETBALANCE=true \
-       --privileged \
-       aitherion-server:latest
-   ```
-
----
-
-## 客户端使用指南 (Windows)
-
-### 环境准备
-1. 安装 [Go](https://golang.org/dl/) 和 Git
-
-### 编译与运行
-```cmd
-:: 获取代码
-git clone https://github.com/hiicl/GPU-over-IP-AC922.git
-cd GPU-over-IP-AC922\cmd\client
-
-:: 编译客户端
-go build -o aitherion-client.exe main.go
-
-:: 运行客户端（替换实际服务器IP）
-set GRPC_SERVER=192.168.1.100:50051
-aitherion-client.exe nvidia-smi
-```
-
----
-
-## 常见问题排查
-
-### 服务端问题
-- **拓扑生成失败**：  
-  检查 `/sys/class/drm/card*/device/numa_node` 文件权限
-- **容器启动失败**：  
-  添加 `--privileged` 参数并验证内核模块加载
-
-### 客户端问题
-- **连接失败**：  
-  1. 检查服务器防火墙设置（端口 50051）  
-  2. 验证 `GRPC_SERVER` 环境变量设置  
-  3. 确认网络可达性
